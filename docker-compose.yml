@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  billing-service:
+    build: .
+    container_name: billing-service
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    env_file:
+      - .env
+    depends_on:
+      - billing-postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  billing-postgres:
+    image: postgres:15-alpine
+    container_name: billing-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: StrongPass123
+      POSTGRES_DB: billing_db
+    ports:
+      - "5433:5432"

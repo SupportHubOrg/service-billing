@@ -1,0 +1,27 @@
+{
+  "name": "service-billing",
+  "version": "1.0.0",
+  "description": "Billing microservice for SupportHub – Stripe checkout, subscriptions & Kafka events",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "prepare": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^6.19.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "kafkajs": "^2.2.4",
+    "stripe": "^18.1.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.19.3"
+  }
+}

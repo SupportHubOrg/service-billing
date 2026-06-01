@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+enum Tier {
+  FREE
+  PREMIUM
+  ENTERPRISE
+}
+
+enum SubStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum TxStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model OrganizationCache {
+  id               String         @id
+  name             String
+  stripeCustomerId String?        @unique
+  tier             Tier           @default(FREE)
+  subscriptions    Subscription[]
+  transactions     Transaction[]
+}
+
+model Subscription {
+  id               String            @id @default(uuid())
+  organizationId   String
+  stripeSubId      String            @unique
+  status           SubStatus
+  currentPeriodEnd DateTime
+  organization     OrganizationCache @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  organizationId  String
+  amount          Decimal
+  currency        String            @default("USD")
+  status          TxStatus
+  stripePaymentId String?           @unique
+  createdAt       DateTime          @default(now())
+  organization    OrganizationCache @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId])
+}
