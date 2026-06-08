@@ -119,20 +119,22 @@ async function handleCheckoutCompleted(session) {
 
   await prisma.organizationCache.update({
     where: { id: organizationId },
-    data: { tier: "PREMIUM" },
+    data: { tier: "PRO" },
   });
 
-  console.log(`[Webhook] Organization ${organizationId} upgraded to PREMIUM`);
+  console.log(`[Webhook] Organization ${organizationId} upgraded to PRO`);
 
-  await publishBillingEvent("PaymentCompleted", {
+  await publishBillingEvent("PaymentConfirmed", {
     organizationId,
     transactionId: tx?.id || session.id,
     status: "SUCCESS",
+    amount: 50.00,
+    tier: "PRO"
   });
 
-  await publishBillingEvent("SubscriptionUpgraded", {
+  await publishBillingEvent("SubscriptionUpdated", {
     organizationId,
-    tier: "PREMIUM",
+    tier: "PRO",
   });
 }
 

@@ -65,8 +65,8 @@ router.post("/checkout", async (req, res) => {
           price_data: {
             currency: PRICE_CURRENCY,
             product_data: {
-              name: "SupportHub Premium",
-              description: "Premium plan – unlimited agents, advanced routing, priority support",
+              name: "SupportHub Pro",
+              description: "Pro plan – unlimited agents, advanced routing, priority support",
             },
             unit_amount: PRICE_AMOUNT,
             recurring: { interval: "month" },
