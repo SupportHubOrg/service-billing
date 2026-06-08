@@ -2,7 +2,7 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const { consumer, producer } = require("./kafka/kafkaClient");
+const { kafka, consumer, producer } = require("./kafka/kafkaClient");
 const { startConsumer } = require("./kafka/consumer");
 const { prisma } = require("./db/prisma");
 
@@ -24,8 +24,36 @@ app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", service: "billing-service" });
 });
 
+async function createKafkaTopics() {
+  try {
+    const adminClient = kafka.admin();
+    await adminClient.connect();
+    
+    const existingTopics = await adminClient.fetchTopicMetadata();
+    const existingTopicNames = new Set(existingTopics.topics.map(t => t.name));
+
+    const topicsNeeded = [
+      process.env.KAFKA_TOPIC_WRITE || "billing-events"
+    ];
+
+    const topicsToCreate = topicsNeeded
+      .filter(topic => !existingTopicNames.has(topic))
+      .map(topic => ({ topic, numPartitions: 1, replicationFactor: 1 }));
+
+    if (topicsToCreate.length > 0) {
+      await adminClient.createTopics({ topics: topicsToCreate, validateOnly: false });
+      console.log("[Kafka] Topics created:", topicsToCreate.map(t => t.topic).join(", "));
+    }
+
+    await adminClient.disconnect();
+  } catch (error) {
+    console.log("[Kafka] Topics already exist or could not be created:", error.message);
+  }
+}
+
 async function start() {
   try {
+    await createKafkaTopics();
     await producer.connect();
     console.log("[Kafka] Producer connected");
 

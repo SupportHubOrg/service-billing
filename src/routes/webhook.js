@@ -129,12 +129,16 @@ async function handleCheckoutCompleted(session) {
     transactionId: tx?.id || session.id,
     status: "SUCCESS",
     amount: 50.00,
-    tier: "PRO"
+    tier: "PRO",
+    paymentDate: new Date().toISOString()
   });
 
   await publishBillingEvent("SubscriptionUpdated", {
     organizationId,
-    tier: "PRO",
+    oldTier: "FREE",
+    newTier: "PRO",
+    updateDate: new Date().toISOString(),
+    updateReason: "Checkout session completed"
   });
 }
 

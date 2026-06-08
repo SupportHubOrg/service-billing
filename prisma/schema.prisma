@@ -10,7 +10,8 @@ datasource db {
 
 enum Tier {
   FREE
-  PREMIUM
+  STANDARD
+  PRO
   ENTERPRISE
 }
 
