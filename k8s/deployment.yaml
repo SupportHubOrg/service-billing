@@ -1,25 +1,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: service-billing
+  name: billing-service
   labels:
-    app: service-billing
+    app: billing-service
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: service-billing
+      app: billing-service
   template:
     metadata:
       labels:
-        app: service-billing
+        app: billing-service
     spec:
+      initContainers:
+      - name: wait-for-keycloak
+        image: busybox:1.36
+        command: ['sh', '-c', 'until wget -q -O - http://keycloak.default.svc.cluster.local:9000/health/ready; do echo "Waiting for Keycloak..."; sleep 5; done;']
       containers:
-      - name: service-billing
-        #Replace with actual container registry URL
-        image: your-registry.com/issueresolutionorg/service-billing:latest
+      - name: billing-service
+        image: your-registry.com/supporthub/billing-service:latest
+        imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+        - containerPort: 5002
         envFrom:
         - configMapRef:
-            name: service-billing-config
+            name: billing-service-config
+        - secretRef:
+            name: billing-service-secret
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 5002
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 10
+          failureThreshold: 10

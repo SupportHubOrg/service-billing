@@ -4,6 +4,8 @@ const { prisma } = require("../db/prisma");
 
 const router = express.Router();
 
+const isTestMode = process.env.RuntimeOptions__IsTestMode === "true" || process.env.NODE_ENV === "test";
+
 let _stripe;
 function getStripe() {
   if (!_stripe) {
@@ -28,14 +30,23 @@ router.post("/checkout", async (req, res) => {
     });
 
     if (!org) {
-      org = await prisma.organizationCache.create({
-        data: {
+      org = await prisma.organizationCache.upsert({
+        where: { id: organizationId },
+        update: {},
+        create: {
           id: organizationId,
-          name: organizationId,
+          name: "Placeholder Name",
           tier: "FREE",
         },
       });
       console.log(`[Checkout] Created placeholder org cache for ${organizationId}`);
+    }
+
+    if (isTestMode) {
+      console.log(`[Checkout Mock] Mocking checkout session generation for org: ${organizationId}`);
+      return res.status(200).json({
+        checkoutUrl: "https://checkout.stripe.com/pay/mock_session_unites_test_loop"
+      });
     }
 
     let stripeCustomerId = org.stripeCustomerId;
